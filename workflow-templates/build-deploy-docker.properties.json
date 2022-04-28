@@ -1,0 +1,5 @@
+{
+  "name": "Build & Deploy Docker Image to ECR",
+  "description": "Workflow build docker image and push to ECR",
+  "iconName": "build-deploy-docker"
+}

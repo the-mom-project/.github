@@ -1,0 +1,5 @@
+{
+  "name": "Run Terraform Plan",
+  "description": "Workflow to run terraform plan on a project",
+  "iconName": "terraform-plan"
+}

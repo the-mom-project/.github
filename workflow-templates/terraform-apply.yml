@@ -1,0 +1,46 @@
+name: Run Terraform Apply
+
+on:
+  push:
+    branches:
+      - main
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  terraform-environments:
+    runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: set-matrix
+        run: echo "::set-output name=matrix::`cat environments-to-provision.json | tr -d '\n '`"
+  terraform-apply:
+    needs: terraform-environments
+    runs-on: ubuntu-20.04
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix: ${{ fromJSON(needs.terraform-environments.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # checkout the private repo containing the action to run
+      - name: Checkout GitHub Action Repo
+        uses: actions/checkout@v3
+        with:
+          repository: the-mom-project/terraform-github-actions
+          ref: main
+          token: ${{ secrets.GITHUBCOM_READ_ONLY }} # Developer PAT to access other private repos
+          path: .github/actions/terraform-actions
+
+      - name: terraform apply
+        uses: ./.github/actions/terraform-actions/terraform-apply
+        with:
+          aws_role: ${{ secrets.AWS_DEPLOY_ARN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          environment: ${{ matrix.environment }}
